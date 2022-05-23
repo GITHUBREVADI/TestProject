@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          import boto3
+          import json
+
+          ssm = boto3.client('ssm')
+          s3 = boto3.client('s3')
+
+          response = ssm.get_parameter(
+              Name='UserName'
+              # WithDecryption=True|False
+          )
+
+          s3_resp = s3.put_object(
+              Body=f"UserName: {response['Parameter']['Value']}",
+              Bucket='exercise-lambda-s3',
+              Key='paramDetails.txt'
+          ) 
+
+      Description: Lambda function to fetch SSM parameters
+      FunctionName: example-lambda
+      Role: arn:aws:iam::094972175145:role/LambdaForCF
+      Runtime: python3.9
+      Handler: index.handler
